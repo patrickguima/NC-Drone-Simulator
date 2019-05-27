@@ -8,10 +8,11 @@ class Drone:
     def __init__(self,x = 0 , y=1,manouvers = 0,direction = (0,0),feromone_value = 0):
         self.x = x
         self.y = y
-        self.posBoard = [(x*37) +5,(y*37) +5] 
+        self.posBoard = ((x*19) +5,(y*19) +5)
         self.direction = direction
         self.manouvers = manouvers
         self.feromone_value = feromone_value
+        self.fitness = 0
     def moveRight(self):
         if(self.x <14):
             self.x+=1
@@ -28,22 +29,27 @@ class Drone:
         if(self.y <14):
             self.y+=1
             self.posBoard = [(self.x*37) +5,(self.y*37) +5]
+    def getBoardPos(self):
 
+        return self.posBoard
     def move(self,grid,tick):
-        grid[self.y][self.x].color=1
-        grid[self.y][self.x].visites+=1
-        grid[self.y][self.x].u_value = grid[self.y][self.x].visites
+        if(self.y != -1 and self.x!= -1):
+            grid[self.y][self.x].color=1
+            #grid[self.y][self.x].visites+=1
+            #grid[self.y][self.x].u_value +=1
         
-        grid[self.y][self.x].intervals.append(tick)
-       # print(grid[self.y][self.x].intervals)
+            grid[self.y][self.x].intervals.append(tick -grid[self.y][self.x].visita_anterior)
+            grid[self.y][self.x].visita_anterior = tick
         sucessor = random.choice(self.getSucessor(grid))
+        sucessor.u_value+=1
+        sucessor.visites+=1
         self.manouvers+=sucessor.cost
         self.direction = sucessor.dir_from_drone
         self.x = sucessor.y
         self.y = sucessor.x
-        self.posBoard = [(self.x*37) +5,(self.y*37) +5] 
-        decrase_uvalue(grid,self.feromone_value)
-
+        self.posBoard = [(self.x*19) +5,(self.y*19) +5] 
+        #decrase_uvalue(grid,self.feromone_value)
+        return grid
     def getSucessor(self,grid):
         x = self.y
         y = self.x
@@ -73,7 +79,7 @@ class Drone:
 
 class patch (): 
     
-    def __init__(self,u_value = 0,x = None , y=None,color = 0,dir_from_drone = (0,0),cost = 0,intervals = [],visites = 0):
+    def __init__(self,u_value = 0,x = None , y=None,color = 0,dir_from_drone = (0,0),cost = 0,intervals = [],visites = 0,visita_anterior = 0):
         self.u_value = u_value
         self.x = x
         self.y = y
@@ -82,6 +88,7 @@ class patch ():
         self.cost = cost
         self.intervals = intervals
         self.visites = visites
+        self.visita_anterior = visita_anterior
       
 
 
@@ -89,13 +96,14 @@ def decrase_uvalue(grid,feromone_value):
     for row in grid:
         for column in row:
             if column.u_value >0:
-                column.u_value -= feromone_value
-
+                column.u_value -= 0.0   
+    return grid
    # print("u_value ",grid[0][0].u_value)
 
     return
 def valide(x,y,grid):
-    if (x <0 or x >14 or y <0 or y> 14):
+    
+    if (x <0 or x >49 or y <0 or y> 49):
         return False
     if grid[x][y].color==3:
        # print("grid ",grid[x][y])
@@ -118,26 +126,35 @@ def sdf(grid):
         sdf += (freq - f_avg)**2
 
     sdf = math.sqrt(sdf / len(frequencies))
-    print("SDF") 
-    print(sdf)
-    print("media",np.mean(f_avg))
+    #print("SDF") 
+    #print(sdf)
+    #print("media",np.mean(f_avg))
     return sdf
     
-def mqi(grid,tick):
-    mqi = 0
+def qmi(grid,tick):
+    qmi = 0
     interval =0 
-    print("MQI: ")
+    #print("MQI: ")
+    total_intervals = 0
 
+    total_cells= 0
     for row in grid:
         aux  =list(filter(lambda x: x.color != 3 ,row))     
         for column in aux:
-            interval += (reduce((lambda x,y: y-x),column.intervals))**2        
-    mqi = math.sqrt(interval/tick)
-    print(mqi)
-    return mqi
+            interval = 0
+            total_intervals+= len(column.intervals)
+            for i in column.intervals:
+                interval+= (i**2)
+            total_cells+=interval
+                
+            #interval += (reduce((lambda x,y: y-x),column.intervals))**2
+                   
+    qmi = math.sqrt(total_cells/total_intervals)
+    #print(qmi)
+    return qmi
 
 def ncc (grid):
-    print("ncc: ")
+    #print("ncc: ")
     min_ncc = []
     aux = []
     minimo = 0
@@ -146,17 +163,16 @@ def ncc (grid):
         aux  =list(filter(lambda x: x.color != 3 ,row))            
         minimo = min(aux, key = lambda x : x.visites ).visites
         min_ncc.append(minimo)
-    print(min(min_ncc))
+   # print(min(min_ncc))
     ncc = min(min_ncc)
     return ncc
-def metrics(drone,grid,tick):
+def metrics(grid,tick):
     print("### MATRICS ###")
-    print("drone info: ", drone.feromone_value)
-    print("number of manouvers :",drone.manouvers)
     sdf_ = sdf(grid)
-    mqi_ = mqi(grid,tick)
+    qmi_ = qmi(grid,tick)
     ncc_ = ncc(grid)
-    return drone.manouvers,sdf_,mqi_,ncc_
+    return qmi_,sdf_,ncc_
+
 def simulation(drone,grid,tick):
     drone.move(grid,tick)
 
