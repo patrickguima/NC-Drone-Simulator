@@ -5,12 +5,14 @@ import random
 import numpy as np
 from functools import reduce
 class Drone:
-    def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False):
+    def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0):
         self.x = x
         self.y = y
         self.posBoard = ((x*19) +5,(y*19) +5)
         self.direction = direction
         self.manouvers = manouvers
+        self.time_base = time_base
+        self.time_threshold = time_threshold
     def moveRight(self):
         if(self.x <14):
             self.x+=1
@@ -36,12 +38,12 @@ class Drone:
             grid[self.y][self.x].intervals.append(tick -grid[self.y][self.x].visita_anterior)
             grid[self.y][self.x].visita_anterior = tick
 
-        sucessor = self.getSucessor(grid)
-        if len(sucessor)>1:
-            sucessor = min(sucessor,key = lambda x: x.visita_anterior)
-        else:
-            sucessor = random.choice(sucessor)
-    
+        if self.time_base == True:
+            sucessor = self.get_sucessor_time_base(grid)
+            
+        else :
+             sucessor = random.choice(self.getSucessor(grid))
+
         sucessor.visites+=1
         #sucessor.u_value+=1
         sucessor.u_value = sucessor.visites
@@ -78,7 +80,17 @@ class Drone:
         cost =  min(new_sucessors, key = lambda x: x.cost).cost
         new_sucessors = list(filter(lambda x : x.cost <= cost,new_sucessors))
         return new_sucessors
-
+    def get_sucessor_time_base(self,grid):
+        sucessors = self.getSucessor(grid)
+        if len(sucessors)>1:
+            if(abs(sucessors[0].visita_anterior - sucessors[1].visita_anterior)>=self.time_threshold ):
+                min_visita = min(sucessors,key = lambda x: x.visita_anterior).visita_anterior
+                   # sucessor = min(sucessors,key = lambda x: x.visita_anterior)
+                sucessors = list(filter(lambda x : x.visita_anterior <= min_visita,sucessors))
+            
+        
+        return (random.choice(sucessors))
+        
 class patch (): 
     
     def __init__(self,u_value = 0,x = None , y=None,color = 0,dir_from_drone = (0,0),cost = 0,intervals = [],visites = 0,visita_anterior = 0):

@@ -4,20 +4,23 @@ from pygame_run import *
 import copy
 import random
 from dataxlsm import *
+
 from gaft import GAEngine
 from gaft.components import BinaryIndividual
+from gaft.components import DecimalIndividual
 from gaft.components import Population
 from gaft.operators import RouletteWheelSelection
 from gaft.operators import TournamentSelection
 from gaft.operators import UniformCrossover
 from gaft.operators import FlipBitBigMutation
-
+from mpi4py import MPI
 # Built-in best fitness analysis.
 from gaft.analysis.fitness_store import FitnessStore
 from gaft.analysis.console_output import ConsoleOutput
 
 # Define population.
-indv_template = BinaryIndividual(ranges=[(1, 1000), (0.01, 0.5)], eps=0.001)
+indv_template = BinaryIndividual(ranges=[(1, 1000),(0.0,0.5),(0, 1000)], eps=0.01)
+#indv_template = DecimalIndividual(ranges=[(0, 1000)], eps=0.001)
 population = Population(indv_template=indv_template, size=50).init()
 
 # Create genetic operators.
@@ -38,10 +41,13 @@ engine = GAEngine(population=population, selection=selection,
 
 
 @engine.fitness_register
+
 def fitness(indv):
-    evap_time,evap_factor = indv.solution
+    evap_time,evap_factor,threshold = indv.solution
+   # print(threshold)
   #  evap_factor  =  0.140696875
     evap_time = int(evap_time)
+    threshold = int(threshold)
     grid_size = 50
     initial_grid = []
 
@@ -65,10 +71,10 @@ def fitness(indv):
         grid = []
         grid = copy.deepcopy(initial_grid)
         drones  = []
-        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1))
-        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1))
-        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1))
-        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1))
+        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
         drones.append(drone)
         drones.append(drone2)
         drones.append(drone3)
@@ -97,12 +103,15 @@ def fitness(indv):
    
 
 
-    return (ticks - (qmi*15) - (sdf*1000) - soma_manobras)
+    return 30000 - ((qmi*20))
 
 
 
 
 
 if '__main__' == __name__:
-    engine.run(ng=500)
- 
+    engine.run(ng=100)
+    best_indv = engine.population.best_indv(engine.fitness)
+    print(best_indv.solution)
+
+ # WS treshold =  media , variar numero de celulas abaixo e tempo de verificaçao

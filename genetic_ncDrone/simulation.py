@@ -30,8 +30,9 @@ def generate_population(size):
     return population
 
 def go():
-    evap_time = 994
-    evap_factor = 0.3
+    evap_time = 627
+    evap_factor = 0.1784375
+    threshold = 266
     #evap_time = int(evap_time)
     grid_size = 50
     initial_grid = []
@@ -50,6 +51,7 @@ def go():
     metrics_results2 = []
 
     simulation_on_screen = False
+
     #initial_population = generate_population(10)
     #print(initial_population)
 
@@ -58,10 +60,10 @@ def go():
         grid = []
         grid = copy.deepcopy(initial_grid)
         drones  = []
-        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True)
-        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True)
-        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True)
-        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True)
+        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
         drones.append(drone)
         drones.append(drone2)
         drones.append(drone3)
