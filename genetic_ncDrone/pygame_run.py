@@ -5,7 +5,7 @@ def select_initial_state(drones,grid,ticks,run):
     WHITE = (255, 255, 255)
     GREEN = (0, 255, 0)
     RED = (255, 0, 0)
- 
+    BLUE = (0, 0, 255)
 
     WIDTH =14
     HEIGHT = 14
@@ -29,7 +29,7 @@ def select_initial_state(drones,grid,ticks,run):
 # Used to manage how fast the screen updates
     clock = pygame.time.Clock()
 
- 
+    water = watershed()
 
     tick = 0
     beginNC = False
@@ -100,8 +100,10 @@ def select_initial_state(drones,grid,ticks,run):
 
             tick+=1   
             
-            if(tick % 100 ==0):
+            if(tick % 400 ==0):
                 print("ticks ",tick)
+                
+                grid = water.check(grid = grid)
           
 
         font = pygame.font.Font(None, 20)
@@ -116,6 +118,8 @@ def select_initial_state(drones,grid,ticks,run):
                 text = font.render(str(grid[row][column].u_value), True, BLACK)
                 if grid[row][column].color == 1:
                     color = GREEN
+                if grid[row][column].color == 2:
+                    color = BLUE
                 if grid[row][column].color == 3:
                     color = RED
                 pygame.draw.rect(screen,
