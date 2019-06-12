@@ -4,6 +4,7 @@ import math
 import random
 import numpy as np
 from functools import reduce
+import statistics
 class Drone:
     def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0):
         self.x = x
@@ -42,7 +43,7 @@ class Drone:
             sucessor = self.get_sucessor_time_base(grid)
             
         else :
-             sucessor = random.choice(self.getSucessor(grid))
+            sucessor = random.choice(self.getSucessor(grid))
 
         sucessor.visites+=1
         #sucessor.u_value+=1
@@ -80,18 +81,19 @@ class Drone:
         cost =  min(new_sucessors, key = lambda x: x.cost).cost
         new_sucessors = list(filter(lambda x : x.cost <= cost,new_sucessors))
         return new_sucessors
+        
     def get_sucessor_time_base(self,grid):
         sucessors = self.getSucessor(grid)
         if len(sucessors)>1:
             if(abs(sucessors[0].visita_anterior - sucessors[1].visita_anterior)>=self.time_threshold ):
+                
                 min_visita = min(sucessors,key = lambda x: x.visita_anterior).visita_anterior
                    # sucessor = min(sucessors,key = lambda x: x.visita_anterior)
                 sucessors = list(filter(lambda x : x.visita_anterior <= min_visita,sucessors))
             
-        
         return (random.choice(sucessors))
         
-class patch (): 
+class patch: 
     
     def __init__(self,u_value = 0,x = None , y=None,color = 0,dir_from_drone = (0,0),cost = 0,intervals = [],visites = 0,visita_anterior = 0):
         self.u_value = u_value
@@ -104,7 +106,86 @@ class patch ():
         self.visites = visites
         self.visita_anterior = visita_anterior
       
+class watershed:
 
+    def __init__(self, checked = [],to_visited = []):
+        self.checked = checked
+        self.to_visited = to_visited
+
+    def check(self,grid):
+        f_avg = 0
+        frequencies = []
+        below_avg = []
+        cluster = []
+        found = False
+
+        for row in grid:
+            for column in row:
+                frequencies.append(column.visites)
+
+        f_avg = int(statistics.mean(frequencies))
+        for row in grid:
+            for column in row:
+                if column.visites < f_avg:
+                   below_avg.append(column)
+                   found = True
+
+        if found == False:
+            return grid
+        all_clusters = []
+        #print(below_avg.x,below_avg.y)
+        for below in below_avg:
+            self.to_visited = []
+            if below not in self.checked:
+                self.to_visited.append(below)
+                cluster = []
+                while len(self.to_visited)>0:
+                    next_patch = self.to_visited.pop(0)
+                    cluster.append(next_patch)
+                    self.get_neighbours(next_patch = next_patch,grid = grid,cluster = cluster,f_avg = f_avg)
+
+            
+                all_clusters.append(cluster)
+        cluster = max(all_clusters,key=len)        
+        for c in cluster:
+            grid[c.x][c.y].color = 2
+
+
+        self.to_visited = []
+        self.checked = []
+       
+        print(f_avg)
+        return grid
+
+    def get_neighbours(self,next_patch,grid,cluster,f_avg):
+        neighbours = []
+        x = next_patch.x
+        y = next_patch.y 
+        if next_patch in self.checked:
+            return
+
+        self.checked.append(next_patch)
+
+        if  valide(x+1,y,grid) and grid[x+1][y] not in self.to_visited and grid[x+1][y] not in cluster and grid[x+1][y].u_value<f_avg  :
+           self.to_visited.append(grid[x+1][y])
+        if  valide(x-1,y,grid) and grid[x-1][y] not in self.to_visited and grid[x-1][y] not in cluster and grid[x-1][y].u_value<f_avg:
+             self.to_visited.append(grid[x-1][y])
+        if  valide(x+1,y+1,grid) and grid[x+1][y+1] not in self.to_visited and grid[x+1][y+1] not in cluster and grid[x+1][y+1].u_value<f_avg:
+             self.to_visited.append(grid[x+1][y+1])
+        if  valide(x-1,y-1,grid) and grid[x-1][y-1] not in self.to_visited and grid[x-1][y-1] not in cluster and grid[x-1][y-1].u_value<f_avg:
+            self.to_visited.append(grid[x-1][y-1])
+        if  valide(x+1,y-1,grid) and grid[x+1][y-1] not in self.to_visited and grid[x+1][y-1] not in cluster and grid[x+1][y-1].u_value<f_avg:   
+            self.to_visited.append(grid[x+1][y-1])
+        if  valide(x-1,y+1,grid) and grid[x-1][y+1] not in self.to_visited and grid[x-1][y+1] not in cluster and grid[x-1][y+1].u_value<f_avg:
+            self.to_visited.append(grid[x-1][y+1])
+        if  valide(x,y+1,grid) and grid[x][y+1] not in self.to_visited and grid[x][y+1] not in cluster and grid[x][y+1].u_value<f_avg:    
+            self.to_visited.append(grid[x][y+1])
+        if  valide(x,y-1,grid) and grid[x][y-1] not in self.to_visited and grid[x][y-1] not in cluster and grid[x][y-1].u_value<f_avg:
+            self.to_visited.append(grid[x][y-1])
+
+               
+
+        return
 
 def decrase_uvalue(grid,feromone_value):
     for row in grid:
@@ -135,7 +216,8 @@ def sdf(grid):
         for column in aux:
             frequencies.append(column.visites)
 
-    f_avg = np.mean(frequencies)
+    #f_avg = np.mean(frequencies)
+    f_avg = statistics.mean(frequencies)
     for freq in frequencies:
         sdf += (freq - f_avg)**2
 
