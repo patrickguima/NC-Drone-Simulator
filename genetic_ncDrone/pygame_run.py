@@ -1,6 +1,7 @@
 import pygame
 from ncDrone import *
-def select_initial_state(drones,grid,ticks,run):
+import copy
+def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     GREEN = (0, 255, 0)
@@ -34,6 +35,9 @@ def select_initial_state(drones,grid,ticks,run):
     tick = 0
     beginNC = False
     
+
+
+
 # -------- Main Program Loop -----------
     while not done:
 
@@ -62,17 +66,28 @@ def select_initial_state(drones,grid,ticks,run):
                 elif event.key == pygame.K_SPACE  and beginNC == True:
                     beginNC = False
                 elif event.key == pygame.K_RIGHT:
+                    if communication_strategy == True:
+                   
+                        grids[0] = drones[0].move(grids[0],tick)
+                        if tick != 0 :
+                            grids[1] = drones[1].move(grids[1],tick)
+                        if tick != 0 and tick != 1 :
+                            grids[2] = drones[2].move(grids[2],tick) 
+                        if tick != 0 and tick != 1 and tick != 2 :
+                            grids[3] = drones[3].move(grids[3],tick)
 
-                    grid = drones[0].move(grid,tick)
-                    #simulation(drones[0],grid,tick)
-                    if tick != 0 :
-                        grid = drones[1].move(grid,tick)
+                        grid,grids = update_grid(grid,grids)
+                    else:
+                        grid = drones[0].move(grid,tick)
+                        #simulation(drones[0],grid,tick)
+                        if tick != 0 :
+                            grid = drones[1].move(grid,tick)
                     
-                    if tick != 0 and tick != 1 :
-                        grid = drones[2].move(grid,tick) 
+                        if tick != 0 and tick != 1 :
+                            grid = drones[2].move(grid,tick) 
 
-                    if tick != 0 and tick != 1 and tick != 2 :
-                        grid = drones[3].move(grid,tick) 
+                        if tick != 0 and tick != 1 and tick != 2 :
+                            grid = drones[3].move(grid,tick) 
 
                     tick+=1     
 
@@ -87,28 +102,32 @@ def select_initial_state(drones,grid,ticks,run):
         if(run):
             #if tick % 100 == 0:
               #  grid =  decrase_uvalue(grid,0.1)
-            grid = drones[0].move(grid,tick)
-                    #simulation(drones[0],grid,tick)
-            if tick != 0 :
-                grid = drones[1].move(grid,tick)
-                    
-            if tick != 0 and tick != 1 :
-                grid = drones[2].move(grid,tick) 
+            if communication_strategy == True:
+                   
+                grids[0] = drones[0].move(grids[0],tick)
+                if tick != 0 :
+                    grids[1] = drones[1].move(grids[1],tick)
+                if tick != 0 and tick != 1 :
+                    grids[2] = drones[2].move(grids[2],tick) 
+                if tick != 0 and tick != 1 and tick != 2 :
+                    grids[3] = drones[3].move(grids[3],tick)
 
-            if tick != 0 and tick != 1 and tick != 2 :
-                grid = drones[3].move(grid,tick) 
+                update_grid(grid,grids)
 
-            tick+=1   
-            
-            if(tick % 400 ==0):
-                print("ticks ",tick)
-                
-                grid = water.check(grid = grid)
-          
+
+            else:
+                grid = drones[0].move(grid,tick)
+                if tick != 0 :
+                    grid = drones[1].move(grid,tick)
+                if tick != 0 and tick != 1 :
+                    grid = drones[2].move(grid,tick) 
+                if tick != 0 and tick != 1 and tick != 2 :
+                    grid = drones[3].move(grid,tick)
+            tick+=1
 
         font = pygame.font.Font(None, 20)
     #text = font.render("1", True, BLACK)
-
+        
     
         screen.fill(BLACK)
         # Draw the grid
