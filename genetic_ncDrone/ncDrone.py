@@ -5,6 +5,7 @@ import random
 import numpy as np
 from functools import reduce
 import statistics
+import copy
 class Drone:
     def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0):
         self.x = x
@@ -40,13 +41,16 @@ class Drone:
             grid[self.y][self.x].visita_anterior = tick
 
         if self.time_base == True:
-            sucessor = self.get_sucessor_time_base(grid)
+            sucessors = self.get_sucessor_time_base(grid)
             
         else :
-            sucessor = random.choice(self.getSucessor(grid))
-
+            sucessors = self.getSucessor(grid)
+        if len(sucessors)==0:
+            return grid
+        grid[self.y][self.x].occupied = False
+        sucessor = random.choice(sucessors)
+        sucessor.occupied = True
         sucessor.visites+=1
-        #sucessor.u_value+=1
         sucessor.u_value = sucessor.visites
         self.manouvers+=sucessor.cost
         self.direction = sucessor.dir_from_drone
@@ -72,7 +76,8 @@ class Drone:
         if valide(x,y-1,grid):
             grid[x][y-1].dir_from_drone = (0,0)
             sucessors.append(grid[x][y-1])
-   
+        if len(sucessors)==0:
+            return []
         minimum_uvalue = min(sucessors,key = lambda x: x.u_value).u_value
         new_sucessors = list(filter(lambda x : x.u_value <= minimum_uvalue,sucessors))
         for suc in new_sucessors:
@@ -91,7 +96,7 @@ class Drone:
                    # sucessor = min(sucessors,key = lambda x: x.visita_anterior)
                 sucessors = list(filter(lambda x : x.visita_anterior <= min_visita,sucessors))
             
-        return (random.choice(sucessors))
+        return (sucessors)
         
 class patch: 
     
@@ -105,6 +110,7 @@ class patch:
         self.intervals = intervals
         self.visites = visites
         self.visita_anterior = visita_anterior
+        self.occupied = False
       
 class watershed:
 
@@ -204,6 +210,8 @@ def valide(x,y,grid):
        # print("grid ",grid[x][y])
        # print("HERE")
         return False
+    if grid[x][y].occupied:
+        return False
 
     return True 
 
@@ -271,6 +279,29 @@ def metrics(grid,tick):
 
 def simulation(drone,grid,tick):
     drone.move(grid,tick)
+
+
+def update_grid(grid,grids):
+    grid_size = 50
+    u_value_total =  0 
+    visites_total = 0
+   # grid = []
+    grid1 = grids[0]
+    grid2 = grids[1]
+    grid3 = grids[2]
+    grid4 = grids[3]
+    for i in range(grid_size):
+        for j in range(grid_size):
+            grid[i][j].visites += (grid1[i][j].visites - grid[i][j].visites) + (grid2[i][j].visites - grid[i][j].visites) + (grid3[i][j].visites-grid[i][j].visites) + (grid4[i][j].visites - grid[i][j].visites) 
+            grid[i][j].u_value += (grid1[i][j].u_value - grid[i][j].u_value) + (grid2[i][j].u_value - grid[i][j].u_value) + (grid3[i][j].u_value-grid[i][j].u_value) + (grid4[i][j].u_value - grid[i][j].u_value)
+            if grid[i][j].visites >0:
+                grid[i][j].color = 1
+            print(grid[i][j].visites)
+                  
+    grids = []
+    for i in range(4):
+        grids.append(copy.deepcopy(grid))
+    return grid,grids
 
     
 

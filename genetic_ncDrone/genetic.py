@@ -13,7 +13,7 @@ from gaft.operators import RouletteWheelSelection
 from gaft.operators import TournamentSelection
 from gaft.operators import UniformCrossover
 from gaft.operators import FlipBitBigMutation
-from mpi4py import MPI
+
 # Built-in best fitness analysis.
 from gaft.analysis.fitness_store import FitnessStore
 from gaft.analysis.console_output import ConsoleOutput
@@ -41,7 +41,6 @@ engine = GAEngine(population=population, selection=selection,
 
 
 @engine.fitness_register
-
 def fitness(indv):
     evap_time,evap_factor,threshold = indv.solution
    # print(threshold)
@@ -110,6 +109,7 @@ def fitness(indv):
 
 
 if '__main__' == __name__:
+
     engine.run(ng=100)
     best_indv = engine.population.best_indv(engine.fitness)
     print(best_indv.solution)

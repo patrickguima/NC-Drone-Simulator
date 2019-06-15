@@ -4,7 +4,7 @@ from pygame_run import *
 import copy
 import random
 from dataxlsm import *
-
+import numpy as np
 
 
 def valide_start_point(grid):
@@ -29,9 +29,13 @@ def generate_population(size):
 
     return population
 
+
+
+
 def go():
-    evap_time = 627
-    evap_factor = 0.1784375
+   # water = watershed()
+    evap_time = 100
+    evap_factor = 0.1
     threshold = 266
     #evap_time = int(evap_time)
     grid_size = 50
@@ -50,20 +54,27 @@ def go():
     metrics_results = []
     metrics_results2 = []
 
-    simulation_on_screen = False
-
+    simulation_on_screen = True
+    time_strategy = False
+    communication_strategy = False
     #initial_population = generate_population(10)
     #print(initial_population)
 
 
-    for i in range(30):
+    for i in range(1):
         grid = []
+        grids = []
         grid = copy.deepcopy(initial_grid)
+        if communication_strategy == True:    
+           
+            for j in range(4):
+                grids.append(copy.deepcopy(initial_grid))
+            
         drones  = []
-        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
+        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold)
+        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = time_strategy,time_threshold = threshold)
+        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = time_strategy,time_threshold = threshold)
+        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = time_strategy,time_threshold = threshold)
         drones.append(drone)
         drones.append(drone2)
         drones.append(drone3)
@@ -73,34 +84,44 @@ def go():
 
         #select_initial_state(drones = drones, grid = grid, ticks = ticks, run = True)
         if simulation_on_screen:
-            select_initial_state(drones = drones, grid = grid, ticks = ticks, run = True)
+            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run = False,communication_strategy = communication_strategy)
         else:    
             for tick in range(ticks):
-                grid = drones[0].move(grid,tick)
-                        #simulation(drones[0],grid,tick)
-                if tick != 0 :
-                    grid = drones[1].move(grid,tick)
-                        
-                if tick != 0 and tick != 1 :
-                    grid = drones[2].move(grid,tick) 
+                if communication_strategy == True:
+                    grids[0] = drones[0].move(grids[0],tick)
+                    if tick != 0 :
+                        grids[1] = drones[1].move(grids[1],tick)
+                    if tick != 0 and tick != 1 :
+                        grids[2] = drones[2].move(grids[2],tick) 
+                    if tick != 0 and tick != 1 and tick != 2 :
+                        grids[3] = drones[3].move(grids[3],tick)
 
-                if tick != 0 and tick != 1 and tick != 2 :
-                    grid = drones[3].move(grid,tick)
+
+                else:
+                    grid = drones[0].move(grid,tick)
+                    grid,grids = update_grid(grid,grids)
+                    if tick != 0 :
+                        grid = drones[1].move(grid,tick)
+                        grid,grids = update_grid(grid,grids)
+                    if tick != 0 and tick != 1 :
+                        grid = drones[2].move(grid,tick)
+                        grid,grids = update_grid(grid,grids) 
+                    if tick != 0 and tick != 1 and tick != 2 :
+                        grid = drones[3].move(grid,tick)
 
 
                 #if tick%evap_time == 0:
-                 #   grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
+                 #  grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
+                   #water.check(grid)
 
-        #print("numero de manobras")
-        #print("drone 1 - ",drones[0].manouvers)
-        #print("drone 2 - ",drones[1].manouvers)
-        #print("drone 3 - ",drones[2].manouvers)
-       # print("drone 4 - ",drones[3].manouvers)
+                grid,grids = update_grid(grid,grids)
+        
         soma_manobras = drones[0].manouvers + drones[1].manouvers + drones[2].manouvers+ drones[3].manouvers
         qmi,sdf,ncc =  metrics(grid,ticks)
         print("qmi: ",qmi)
         print("sdf: ",sdf)
         print("ncc: ",ncc)
+        print("manobras",soma_manobras)
         #num = 0
         metrics_results.append([i,qmi,sdf,ncc,soma_manobras])
     ##print(fitness(drone,grid,ticks))
