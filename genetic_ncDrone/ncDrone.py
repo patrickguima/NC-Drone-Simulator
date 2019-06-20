@@ -7,7 +7,7 @@ from functools import reduce
 import statistics
 import copy
 class Drone:
-    def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0):
+    def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0,communication_strategy = False):
         self.x = x
         self.y = y
         self.posBoard = ((x*19) +5,(y*19) +5)
@@ -15,6 +15,10 @@ class Drone:
         self.manouvers = manouvers
         self.time_base = time_base
         self.time_threshold = time_threshold
+        self.communication_strategy = communication_strategy
+        self.path_water = []
+        self.watershed_mode = False
+        self.in_cluster = []
     def moveRight(self):
         if(self.x <14):
             self.x+=1
@@ -34,46 +38,79 @@ class Drone:
     def getBoardPos(self):
 
         return self.posBoard
-    def move(self,grid,tick):
+    def move(self,grid,tick,grid_aux):
         if(self.y != -1 and self.x!= -1):
             grid[self.y][self.x].color=1
-            grid[self.y][self.x].intervals.append(tick -grid[self.y][self.x].visita_anterior)
-            grid[self.y][self.x].visita_anterior = tick
+        if len(self.path_water)>0:
+            #for i in self.path_water:
+             #   grid[i.x][i.y].color = 1
+            #self.getSucessor(grid = grid,grid_aux = [])
+            path = self.path_water.pop(-1)
+            x = self.y
+            y = self.x
+            if x+1 == path.x:
+                path.dir_from_drone = (1,0)
+            if x-1 == path.x:
+                path.dir_from_drone = (0,1)
+            if y+1 == path.y:
+                path.dir_from_drone = (1,1)
+            if y-1 == path.y:
+                path.dir_from_drone = (1,0)
+            path.cost = abs((self.direction[0]-path.dir_from_drone[0]) + (self.direction[1]-path.dir_from_drone[1]))
+            print('cost',path.cost)
+            sucessors = [path]
 
-        if self.time_base == True:
-            sucessors = self.get_sucessor_time_base(grid)
+        else:
+            watershed_mode = False
+            if self.time_base == True:
+                sucessors = self.get_sucessor_time_base(grid,grid_aux,self.in_cluster)
             
-        else :
-            sucessors = self.getSucessor(grid)
+            else :
+                if self.communication_strategy:
+                    sucessors = self.getSucessor(grid = grid_aux,grid_aux = grid,in_cluster = self.in_cluster)
+                else : 
+                    sucessors = self.getSucessor(grid = grid,grid_aux = grid_aux,in_cluster = self.in_cluster)
         if len(sucessors)==0:
-            return grid
-        grid[self.y][self.x].occupied = False
+            return grid,grid_aux
+
+      
         sucessor = random.choice(sucessors)
         sucessor.occupied = True
         sucessor.visites+=1
         sucessor.u_value = sucessor.visites
+
+        if self.communication_strategy:
+            grid_aux[self.y][self.x].occupied = False
+            grid[self.y][self.x].occupied = False
+            grid[sucessor.x][sucessor.y].occupied = True
+        else:
+            if len(self.in_cluster)==0:
+                grid[self.y][self.x].occupied = False
+
         self.manouvers+=sucessor.cost
         self.direction = sucessor.dir_from_drone
         self.x = sucessor.y
         self.y = sucessor.x
+        grid[self.y][self.x].intervals.append(tick -grid[self.y][self.x].visita_anterior)
+        grid[self.y][self.x].visita_anterior = tick
         self.posBoard = [(self.x*19) +5,(self.y*19) +5] 
         #decrase_uvalue(grid,self.feromone_value)
-        return grid
-    def getSucessor(self,grid):
+        return grid,grid_aux
+    def getSucessor(self,grid,grid_aux,in_cluster):
         x = self.y
         y = self.x
         sucessors = []
         new_sucessors = []
-        if  valide(x+1,y,grid):
+        if  valide(x+1,y,grid,grid_aux,in_cluster):
             grid[x+1][y].dir_from_drone = (1,0)
             sucessors.append(grid[x+1][y])
-        if valide(x-1,y,grid):
+        if valide(x-1,y,grid,grid_aux,in_cluster):
             grid[x-1][y].dir_from_drone = (0,1)
             sucessors.append(grid[x-1][y])
-        if valide(x,y+1,grid):
+        if valide(x,y+1,grid,grid_aux,in_cluster):
             grid[x][y+1].dir_from_drone = (1,1)
             sucessors.append(grid[x][y+1])
-        if valide(x,y-1,grid):
+        if valide(x,y-1,grid,grid_aux,in_cluster):
             grid[x][y-1].dir_from_drone = (0,0)
             sucessors.append(grid[x][y-1])
         if len(sucessors)==0:
@@ -87,8 +124,8 @@ class Drone:
         new_sucessors = list(filter(lambda x : x.cost <= cost,new_sucessors))
         return new_sucessors
         
-    def get_sucessor_time_base(self,grid):
-        sucessors = self.getSucessor(grid)
+    def get_sucessor_time_base(self,grid,grid_aux,in_cluster):
+        sucessors = self.getSucessor(grid,grid_aux,in_cluster)
         if len(sucessors)>1:
             if(abs(sucessors[0].visita_anterior - sucessors[1].visita_anterior)>=self.time_threshold ):
                 
@@ -111,20 +148,45 @@ class patch:
         self.visites = visites
         self.visita_anterior = visita_anterior
         self.occupied = False
-      
+        
 class watershed:
 
-    def __init__(self, checked = [],to_visited = []):
+    def __init__(self, checked = [],to_visited = [],chosen_drone = None):
         self.checked = checked
         self.to_visited = to_visited
+        self.done = True
+        self.cluster = []
+        self.chosen_drone = chosen_drone
+    def check_empty(self,grid):
+        grid_size = 50
+        for i in range(grid_size):
+            for j in range(grid_size):
+                if grid[i][j].color == 2:
+                    return True
 
-    def check(self,grid):
+        return False
+
+    def check(self,grid,grid_aux,drones):
         f_avg = 0
         frequencies = []
         below_avg = []
         cluster = []
         found = False
-
+        #if self.chosen_drone !=None:
+         #   if self.chosen_drone.watershed_mode == True:
+          #      return grid
+        if self.check_empty(grid):
+            print('here')
+            return grid
+        #if len(self.cluster)>0:
+           # print('aki')
+            #if len(self.chosen_drone.path_water) ==0:
+             #   grid = self.get_path_to_cluster(drone = self.chosen_drone,cluster = random.choice(self.cluster),grid = grid)
+              #  return grid
+         #   return grid
+        self.cluster.clear()
+        if self.chosen_drone !=None:
+            self.chosen_drone.in_cluster.clear()
         for row in grid:
             for column in row:
                 frequencies.append(column.visites)
@@ -148,22 +210,79 @@ class watershed:
                 while len(self.to_visited)>0:
                     next_patch = self.to_visited.pop(0)
                     cluster.append(next_patch)
-                    self.get_neighbours(next_patch = next_patch,grid = grid,cluster = cluster,f_avg = f_avg)
+                    self.get_neighbours(next_patch = next_patch,grid = grid,cluster = cluster,f_avg = f_avg,grid_aux = grid_aux)
 
             
                 all_clusters.append(cluster)
-        cluster = max(all_clusters,key=len)        
-        for c in cluster:
-            grid[c.x][c.y].color = 2
 
 
-        self.to_visited = []
-        self.checked = []
+        self.to_visited.clear()
+        self.checked.clear()
+
+        
+        #self.cluster = list(filter(lambda x: len(x)<=50,all_clusters))
+        self.cluster =  max(all_clusters,key = len)
+        if len(self.cluster)==0:
+           # self.cluster =  max(self.cluster,key = len)
+            return grid        
+        
+          
+        clus = random.choice(self.cluster)
+
+
+
+        for c in self.cluster:
+           grid[c.x][c.y].color = 2
+          #grid[c.x][c.y].occupied = True
+      
+
+        #drones = list(filter(lambda x : len(x.path_water) ==0,drones))
+
+        #if(len(drones)==0):
+         #   return grid
+        
+        chosen_drone = min(drones,key = lambda drone: euclidian_distance(drone.y,drone.x,clus.x,clus.y))
+        #self.chosen_drone = chosen_drone
+        #self.chosen_drone.watershed_mode = True
+       # self.chosen_drone.in_cluster = self.cluster
+        #self.chosen_drone.in_cluster.append(grid[self.chosen_drone.y][self.chosen_drone.x])
+      
+        grid = self.get_path_to_cluster(drone = chosen_drone,cluster = clus,grid = grid)
        
-        print(f_avg)
+        self.done = False
+    
+        return grid
+    def get_path_to_cluster(self,drone,cluster,grid):
+        x_total=  cluster.x - drone.y 
+        y_total = cluster.y - drone.x
+       # path_water = [] 
+        for i in range(abs(x_total)):
+            if(x_total)<0:
+                k = i
+            else:
+                k = -i 
+            print('to go',cluster.x+ k,cluster.y)
+            #grid[cluster.x+k][cluster.y].occupied = True
+            #grid[cluster.x+k][cluster.y].color = 3
+            drone.path_water.append(grid[cluster.x+k][cluster.y])
+
+
+        for i in range(abs(y_total)):
+            if y_total <0:
+                k = i
+            else :
+                k= -i
+            drone.path_water.append(grid[drone.y][cluster.y+k])
+           # grid[drone.y][cluster.y+k].color = 3
+           # grid[drone.y][cluster.y+k].occupied = True
+            print('to go',drone.y,cluster.y+k)
+        #drone.path_water.append(grid[cluster.x][cluster.y])
+
         return grid
 
-    def get_neighbours(self,next_patch,grid,cluster,f_avg):
+
+
+    def get_neighbours(self,next_patch,grid,cluster,f_avg,grid_aux):
         neighbours = []
         x = next_patch.x
         y = next_patch.y 
@@ -172,27 +291,30 @@ class watershed:
 
         self.checked.append(next_patch)
 
-        if  valide(x+1,y,grid) and grid[x+1][y] not in self.to_visited and grid[x+1][y] not in cluster and grid[x+1][y].u_value<f_avg  :
+        if  valide(x+1,y,grid,grid_aux,[]) and grid[x+1][y] not in self.to_visited and grid[x+1][y] not in cluster and grid[x+1][y].visites<f_avg  :
            self.to_visited.append(grid[x+1][y])
-        if  valide(x-1,y,grid) and grid[x-1][y] not in self.to_visited and grid[x-1][y] not in cluster and grid[x-1][y].u_value<f_avg:
+        if  valide(x-1,y,grid,grid_aux,[]) and grid[x-1][y] not in self.to_visited and grid[x-1][y] not in cluster and grid[x-1][y].visites<f_avg:
              self.to_visited.append(grid[x-1][y])
-        if  valide(x+1,y+1,grid) and grid[x+1][y+1] not in self.to_visited and grid[x+1][y+1] not in cluster and grid[x+1][y+1].u_value<f_avg:
+        if  valide(x+1,y+1,grid,grid_aux,[]) and grid[x+1][y+1] not in self.to_visited and grid[x+1][y+1] not in cluster and grid[x+1][y+1].visites<f_avg:
              self.to_visited.append(grid[x+1][y+1])
-        if  valide(x-1,y-1,grid) and grid[x-1][y-1] not in self.to_visited and grid[x-1][y-1] not in cluster and grid[x-1][y-1].u_value<f_avg:
+        if  valide(x-1,y-1,grid,grid_aux,[]) and grid[x-1][y-1] not in self.to_visited and grid[x-1][y-1] not in cluster and grid[x-1][y-1].visites<f_avg:
             self.to_visited.append(grid[x-1][y-1])
-        if  valide(x+1,y-1,grid) and grid[x+1][y-1] not in self.to_visited and grid[x+1][y-1] not in cluster and grid[x+1][y-1].u_value<f_avg:   
+        if  valide(x+1,y-1,grid,grid_aux,[]) and grid[x+1][y-1] not in self.to_visited and grid[x+1][y-1] not in cluster and grid[x+1][y-1].visites<f_avg:   
             self.to_visited.append(grid[x+1][y-1])
-        if  valide(x-1,y+1,grid) and grid[x-1][y+1] not in self.to_visited and grid[x-1][y+1] not in cluster and grid[x-1][y+1].u_value<f_avg:
+        if  valide(x-1,y+1,grid,grid_aux,[]) and grid[x-1][y+1] not in self.to_visited and grid[x-1][y+1] not in cluster and grid[x-1][y+1].visites<f_avg:
             self.to_visited.append(grid[x-1][y+1])
-        if  valide(x,y+1,grid) and grid[x][y+1] not in self.to_visited and grid[x][y+1] not in cluster and grid[x][y+1].u_value<f_avg:    
+        if  valide(x,y+1,grid,grid_aux,[]) and grid[x][y+1] not in self.to_visited and grid[x][y+1] not in cluster and grid[x][y+1].visites<f_avg:    
             self.to_visited.append(grid[x][y+1])
-        if  valide(x,y-1,grid) and grid[x][y-1] not in self.to_visited and grid[x][y-1] not in cluster and grid[x][y-1].u_value<f_avg:
+        if  valide(x,y-1,grid,grid_aux,[]) and grid[x][y-1] not in self.to_visited and grid[x][y-1] not in cluster and grid[x][y-1].visites<f_avg:
             self.to_visited.append(grid[x][y-1])
 
                
 
         return
 
+
+def euclidian_distance(x1,y1,x2,y2):
+    return math.sqrt( ((x1-x2)**2) +((y1-y2)**2))
 def decrase_uvalue(grid,feromone_value):
     for row in grid:
         for column in row:
@@ -202,16 +324,22 @@ def decrase_uvalue(grid,feromone_value):
 
 
     return
-def valide(x,y,grid):
+def valide(x,y,grid,grid_aux,in_cluster):
     
     if (x <0 or x >49 or y <0 or y> 49):
         return False
-    if grid[x][y].color==3:
-       # print("grid ",grid[x][y])
-       # print("HERE")
-        return False
+    #if grid[x][y].color==3:
+     #   return False
+    #if grid[x][y] in in_cluster:
+     #   return True
     if grid[x][y].occupied:
         return False
+    if len(grid_aux)>0:
+        if grid_aux[x][y].occupied:
+            return False
+    #if len(in_cluster)>0:
+     #   if grid[x][y] not in in_cluster:
+      #      return False
 
     return True 
 
@@ -220,8 +348,8 @@ def sdf(grid):
     sdf = 0
     frequencies = []
     for row in grid:
-        aux  =list(filter(lambda x: x.color != 3 ,row))   
-        for column in aux:
+        #aux  =list(filter(lambda x: x.color != 3 ,row))   
+        for column in row:
             frequencies.append(column.visites)
 
     #f_avg = np.mean(frequencies)
@@ -243,7 +371,7 @@ def qmi(grid,tick):
 
     total_cells= 0
     for row in grid:
-        aux  =list(filter(lambda x: x.color != 3 ,row))     
+        #aux  =list(filter(lambda x: x.color != 3 ,row))     
         for column in row:
             interval = 0
             total_intervals+= len(column.intervals)
@@ -264,8 +392,8 @@ def ncc (grid):
     minimo = 0
     for row in grid:
         aux = []
-        aux  =list(filter(lambda x: x.color != 3 ,row))            
-        minimo = min(aux, key = lambda x : x.visites ).visites
+        #aux  =list(filter(lambda x: x.color != 3 ,row))            
+        minimo = min(row, key = lambda x : x.visites ).visites
         min_ncc.append(minimo)
    # print(min(min_ncc))
     ncc = min(min_ncc)
@@ -279,6 +407,10 @@ def metrics(grid,tick):
 
 def simulation(drone,grid,tick):
     drone.move(grid,tick)
+def tick_to_go(tick,k):
+    if tick>=k:
+        return True
+    return False
 
 
 def update_grid(grid,grids):
@@ -296,11 +428,22 @@ def update_grid(grid,grids):
             grid[i][j].u_value += (grid1[i][j].u_value - grid[i][j].u_value) + (grid2[i][j].u_value - grid[i][j].u_value) + (grid3[i][j].u_value-grid[i][j].u_value) + (grid4[i][j].u_value - grid[i][j].u_value)
             if grid[i][j].visites >0:
                 grid[i][j].color = 1
-            print(grid[i][j].visites)
-                  
-    grids = []
-    for i in range(4):
-        grids.append(copy.deepcopy(grid))
+            #print(grid[i][j].visites)
+    #grids.clear()        
+    #grids = []
+    for i in range(grid_size):
+        for j in range(grid_size):
+            grids[0][i][j].visites = grid[i][j].visites
+            grids[1][i][j].visites = grid[i][j].visites
+            grids[2][i][j].visites = grid[i][j].visites
+            grids[3][i][j].visites = grid[i][j].visites
+
+            grids[0][i][j].u_value = grid[i][j].u_value
+            grids[1][i][j].u_value = grid[i][j].u_value
+            grids[2][i][j].u_value = grid[i][j].u_value
+            grids[3][i][j].u_value = grid[i][j].u_value
+        #grids.append(grid)
+
     return grid,grids
 
     

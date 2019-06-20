@@ -13,13 +13,13 @@ from gaft.operators import RouletteWheelSelection
 from gaft.operators import TournamentSelection
 from gaft.operators import UniformCrossover
 from gaft.operators import FlipBitBigMutation
-
+from gaft.operators import FlipBitMutation
 # Built-in best fitness analysis.
 from gaft.analysis.fitness_store import FitnessStore
 from gaft.analysis.console_output import ConsoleOutput
 
 # Define population.
-indv_template = BinaryIndividual(ranges=[(1, 1000),(0.0,0.5),(0, 1000)], eps=0.01)
+indv_template = BinaryIndividual(ranges=[(1,1000),(0.0,1.0),(1,1000)], eps=0.01)
 #indv_template = DecimalIndividual(ranges=[(0, 1000)], eps=0.001)
 population = Population(indv_template=indv_template, size=50).init()
 
@@ -28,7 +28,7 @@ selection = RouletteWheelSelection()
 #selection = TournamentSelection()
 crossover = UniformCrossover(pc=0.8, pe=0.5)
 mutation = FlipBitBigMutation(pm=0.1, pbm=0.55, alpha=0.6)
-
+#mutation = FlipBitMutation(pm=0.1)
 # Create genetic algorithm engine.
 # Here we pass all built-in analysis to engine constructor.
 engine = GAEngine(population=population, selection=selection,
@@ -41,12 +41,33 @@ engine = GAEngine(population=population, selection=selection,
 
 
 @engine.fitness_register
+@engine.minimize
 def fitness(indv):
-    evap_time,evap_factor,threshold = indv.solution
-   # print(threshold)
-  #  evap_factor  =  0.140696875
-    evap_time = int(evap_time)
-    threshold = int(threshold)
+ 
+    #NUMERO DE TICKS
+    ticks =10000
+    #ESTRATEGIAS ADOTADAS
+    time_strategy = True
+    communication_strategy = False
+    evaporation_strategy = True
+    watershed_strategy = False
+
+    
+
+    #PARAMETROS DE SIMULAÇAO
+    #print(indv.solution)
+     
+    evap_time = int(indv.solution[0])
+    evap_factor = indv.solution[1]
+    #print(indv.solution[0])
+    threshold_time = int(indv.solution[2])
+    communication_time = 0
+    watershed_time = 1
+    number_drones = 4
+
+
+     #INICIALIZAÇAO
+    water = watershed()
     grid_size = 50
     initial_grid = []
 
@@ -59,50 +80,57 @@ def fitness(indv):
                   # Append a cell
 
 
-    ticks =10000
-    metrics_results = []
-    metrics_results2 = []
-
-    simulation_on_screen = False
-
-
-    for i in range(1):
-        grid = []
-        grid = copy.deepcopy(initial_grid)
-        drones  = []
-        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = True,time_threshold = threshold)
-        drones.append(drone)
-        drones.append(drone2)
-        drones.append(drone3)
-        drones.append(drone4)
-
-        
-        for tick in range(ticks):
-            grid = drones[0].move(grid,tick)
-            if tick != 0 :
-                grid = drones[1].move(grid,tick)
-                        
-            if tick != 0 and tick != 1 :
-                grid = drones[2].move(grid,tick) 
-
-            if tick != 0 and tick != 1 and tick != 2 :
-                grid = drones[3].move(grid,tick)
-
-
-            if tick%evap_time == 0:
-                grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
-
-        soma_manobras = drones[0].manouvers + drones[1].manouvers + drones[2].manouvers+ drones[3].manouvers
-        qmi,sdf,ncc =  metrics(grid,ticks)
-        
-        #metrics_results.append([i,qmi,sdf,ncc,soma_manobras])
    
 
+  
+    grid = []
+    grids = []
+    grid = copy.deepcopy(initial_grid)
+    if communication_strategy == True:  
+        for j in range(4):
+            grids.append(copy.deepcopy(initial_grid))
+            
+    drones  = []  
+    for num in range(number_drones):        
+        drones.append(Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy))
 
-    return 30000 - ((qmi*20))
+        
+    
+    for tick in range(ticks):
+        if communication_strategy == True:
+            if tick %communication_time ==0:       
+                grid,grids = update_grid(grid,grids) 
+
+            for k,drone in enumerate(drones):
+                if tick_to_go(tick,k):
+                    grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
+
+                    
+        else:
+            for k,drone in enumerate(drones):
+                if tick_to_go(tick,k):
+                    grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
+                   
+        if evaporation_strategy:
+            if tick%evap_time == 0:
+                grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
+                   #water.check(grid)
+        if watershed_strategy:
+            if tick%watershed_time==0:
+                grid = water.check(grid = grid,grid_aux = [],drones = drones)
+
+    soma_manobras = 0      
+    for drone in drones:
+        soma_manobras += drone.manouvers
+    qmi,sdf,ncc =  metrics(grid,ticks)
+        
+       
+   
+
+    grid.clear()
+    initial_grid.clear()
+    drones.clear()
+    return qmi
 
 
 
@@ -110,7 +138,7 @@ def fitness(indv):
 
 if '__main__' == __name__:
 
-    engine.run(ng=100)
+    engine.run(ng=200)
     best_indv = engine.population.best_indv(engine.fitness)
     print(best_indv.solution)
 

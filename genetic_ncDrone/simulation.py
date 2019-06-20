@@ -19,25 +19,33 @@ def valide_start_point(grid):
     #print(valide)
     return valide
 
-def generate_population(size):
-
-    population = []
-    for i in range(size):
-        evap_time = random.randrange(1,1000)
-        evap_factor = random.uniform(0,0.5)
-        population.append([evap_time,evap_factor])
-
-    return population
 
 
 
 
 def go():
-   # water = watershed()
-    evap_time = 100
-    evap_factor = 0.1
-    threshold = 266
-    #evap_time = int(evap_time)
+  
+
+    #NUMERO DE TICKS
+    ticks =10000
+    #ESTRATEGIAS ADOTADAS
+    simulation_on_screen = False
+    time_strategy = True
+    communication_strategy = False
+    evaporation_strategy = True
+    watershed_strategy = False
+    
+
+    #PARAMETROS DE SIMULAÇAO
+    evap_time = 1
+    evap_factor =  0.5
+    threshold_time = 284
+    watershed_time = 1
+    communication_time = 50
+    number_drones = 4
+    #INICIALIZAÇAO
+    water = watershed()
+    metrics_results = []
     grid_size = 50
     initial_grid = []
 
@@ -47,90 +55,65 @@ def go():
             aux_patch = patch(u_value = 0,x = row,y = column,color = 0,intervals = [ ],visites = 0,visita_anterior = 0)
             initial_grid[row].append(aux_patch)
 
-                  # Append a cell
+                  
 
 
-    ticks =10000
-    metrics_results = []
-    metrics_results2 = []
-
-    simulation_on_screen = True
-    time_strategy = False
-    communication_strategy = False
-    #initial_population = generate_population(10)
-    #print(initial_population)
-
-
-    for i in range(1):
+    for i in range(30):
+        water = watershed()
         grid = []
         grids = []
         grid = copy.deepcopy(initial_grid)
         if communication_strategy == True:    
-           
-            for j in range(4):
+            for j in range(number_drones):
                 grids.append(copy.deepcopy(initial_grid))
             
         drones  = []
-        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold)
-        drone2  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = time_strategy,time_threshold = threshold)
-        drone3  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = time_strategy,time_threshold = threshold)
-        drone4  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base = time_strategy,time_threshold = threshold)
-        drones.append(drone)
-        drones.append(drone2)
-        drones.append(drone3)
-        drones.append(drone4)
-       # grid = select_initial_state(drones = drones,grid = grid ,ticks = ticks, run = False)
-        #grid = select_initial_state(drones = drones,grid = grid ,ticks = ticks, run = False)
+        for num in range(number_drones):
+            drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drones.append(drone)
 
-        #select_initial_state(drones = drones, grid = grid, ticks = ticks, run = True)
         if simulation_on_screen:
-            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run = False,communication_strategy = communication_strategy)
+            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run  = True ,communication_strategy = communication_strategy)
         else:    
             for tick in range(ticks):
+               # print(tick)
                 if communication_strategy == True:
-                    grids[0] = drones[0].move(grids[0],tick)
-                    if tick != 0 :
-                        grids[1] = drones[1].move(grids[1],tick)
-                    if tick != 0 and tick != 1 :
-                        grids[2] = drones[2].move(grids[2],tick) 
-                    if tick != 0 and tick != 1 and tick != 2 :
-                        grids[3] = drones[3].move(grids[3],tick)
-
-
-                else:
-                    grid = drones[0].move(grid,tick)
-                    grid,grids = update_grid(grid,grids)
-                    if tick != 0 :
-                        grid = drones[1].move(grid,tick)
-                        grid,grids = update_grid(grid,grids)
-                    if tick != 0 and tick != 1 :
-                        grid = drones[2].move(grid,tick)
+                    if tick %communication_time ==0:       
                         grid,grids = update_grid(grid,grids) 
-                    if tick != 0 and tick != 1 and tick != 2 :
-                        grid = drones[3].move(grid,tick)
 
+                    for k,drone in enumerate(drones):
+                        if tick_to_go(tick,k):
+                            grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
 
-                #if tick%evap_time == 0:
-                 #  grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
-                   #water.check(grid)
+                    
+                else:
+                    for k,drone in enumerate(drones):
+                        if tick_to_go(tick,k):
+                            grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
+                   
+                if evaporation_strategy:
+                    if tick%evap_time == 0:
+                        grid = decrase_uvalue(grid = grid,feromone_value = evap_factor)
+                
+                if watershed_strategy:   
+                    if tick%watershed_time==0:
+                        grid = water.check(grid = grid,grid_aux = [],drones = drones)
 
-                grid,grids = update_grid(grid,grids)
-        
-        soma_manobras = drones[0].manouvers + drones[1].manouvers + drones[2].manouvers+ drones[3].manouvers
+        soma_manobras = 0      
+        for drone in drones:
+            soma_manobras += drone.manouvers
         qmi,sdf,ncc =  metrics(grid,ticks)
         print("qmi: ",qmi)
         print("sdf: ",sdf)
         print("ncc: ",ncc)
         print("manobras",soma_manobras)
-        #num = 0
         metrics_results.append([i,qmi,sdf,ncc,soma_manobras])
-    ##print(fitness(drone,grid,ticks))
-        #print(metrics_results)
 
 
         
 
     write_xlsm(metrics_results)
+    return
 
 
 #numero de agentes, tempo entre evaporaçoes, posiçao inicial e taxa de evaporaçao
