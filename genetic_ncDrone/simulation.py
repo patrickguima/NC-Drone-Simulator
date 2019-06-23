@@ -30,21 +30,22 @@ def go():
     ticks =10000
     #ESTRATEGIAS ADOTADAS
     simulation_on_screen = False
-    time_strategy = True
-    communication_strategy = False
-    evaporation_strategy = True
+    time_strategy = False
+    communication_strategy = True
+    evaporation_strategy = False
     watershed_strategy = False
     
 
     #PARAMETROS DE SIMULAÇAO
     evap_time = 1
-    evap_factor =  0.5
-    threshold_time = 284
+    evap_factor =  0.328
+    threshold_time = 34
     watershed_time = 1
     communication_time = 50
     number_drones = 4
     #INICIALIZAÇAO
     water = watershed()
+    water.water_threshold = 895
     metrics_results = []
     grid_size = 50
     initial_grid = []
@@ -78,14 +79,14 @@ def go():
             for tick in range(ticks):
                # print(tick)
                 if communication_strategy == True:
-                    if tick %communication_time ==0:       
-                        grid,grids = update_grid(grid,grids) 
+                   
 
                     for k,drone in enumerate(drones):
                         if tick_to_go(tick,k):
                             grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
 
-                    
+                    if tick %communication_time ==0:       
+                        grid,grids = update_grid(grid,grids) 
                 else:
                     for k,drone in enumerate(drones):
                         if tick_to_go(tick,k):

@@ -35,7 +35,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
     tick = 0
     beginNC = False
     communication_time = 50
-
+    water.water_threshold = 2
 
 
 # -------- Main Program Loop -----------
@@ -91,12 +91,12 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
        
         if(run):
             if communication_strategy == True:
-               if tick %communication_time ==0:       
-                    grid,grids = update_grid(grid,grids)    
-               for k,drone in enumerate(drones):
+                
+                for k,drone in enumerate(drones):
                     if tick_to_go(tick,k):
-                         grids[k],grid = drone.move(grid = grids[k],tick = tick,grid_aux = grid)
-
+                         grid,grids[k] = drone.move(grid = grid,tick = tick,grid_aux = grids[k])
+                if tick %communication_time ==0:       
+                    grid,grids = update_grid(grid,grids) 
                 
 
 
@@ -106,7 +106,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                     if tick_to_go(tick,k):
                         grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
                 
-                #if tick%1 == 0:
+                #if tick%50 == 0:
                  #   grid = decrase_uvalue(grid = grid,feromone_value = 0.3)
                 grid = water.check(grid = grid,grid_aux = [],drones = drones)
               #  if water.done == False:

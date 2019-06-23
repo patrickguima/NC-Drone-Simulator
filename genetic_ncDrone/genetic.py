@@ -19,9 +19,9 @@ from gaft.analysis.fitness_store import FitnessStore
 from gaft.analysis.console_output import ConsoleOutput
 
 # Define population.
-indv_template = BinaryIndividual(ranges=[(1,1000),(0.0,1.0),(1,1000)], eps=0.01)
-#indv_template = DecimalIndividual(ranges=[(0, 1000)], eps=0.001)
-population = Population(indv_template=indv_template, size=50).init()
+#indv_template = BinaryIndividual(ranges=[(1,1000)], eps=1)
+indv_template = DecimalIndividual(ranges=[(1, 1000)], eps=1)
+population = Population(indv_template=indv_template, size=70).init()
 
 # Create genetic operators.
 selection = RouletteWheelSelection()
@@ -47,27 +47,28 @@ def fitness(indv):
     #NUMERO DE TICKS
     ticks =10000
     #ESTRATEGIAS ADOTADAS
-    time_strategy = True
-    communication_strategy = False
-    evaporation_strategy = True
-    watershed_strategy = False
+    time_strategy = False
+    communication_strategy = True
+    evaporation_strategy = False
+    watershed_strategy =   False
 
     
 
     #PARAMETROS DE SIMULAÇAO
     #print(indv.solution)
      
-    evap_time = int(indv.solution[0])
-    evap_factor = indv.solution[1]
-    #print(indv.solution[0])
-    threshold_time = int(indv.solution[2])
-    communication_time = 0
+  #  evap_time = int(indv.solution[0])
+    #evap_factor = indv.solution[1]
+   # print(indv.solution[0])
+    threshold_time = 1
+    communication_time =  indv.solution[0]
     watershed_time = 1
     number_drones = 4
-
+    #print(communication_time)
 
      #INICIALIZAÇAO
     water = watershed()
+    water.water_threshold = int(indv.solution[0])
     grid_size = 50
     initial_grid = []
 
@@ -138,7 +139,7 @@ def fitness(indv):
 
 if '__main__' == __name__:
 
-    engine.run(ng=200)
+    engine.run(ng=100)
     best_indv = engine.population.best_indv(engine.fitness)
     print(best_indv.solution)
 
