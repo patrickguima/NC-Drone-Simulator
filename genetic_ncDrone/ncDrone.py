@@ -7,7 +7,7 @@ from functools import reduce
 import statistics
 import copy
 class Drone:
-    def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0,communication_strategy = False):
+    def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0,communication_strategy = False,label = None):
         self.x = x
         self.y = y
         self.posBoard = ((x*19) +5,(y*19) +5)
@@ -18,6 +18,7 @@ class Drone:
         self.communication_strategy = communication_strategy
         self.path_water = []
         self.watershed_mode = False
+        self.label = label
     def moveRight(self):
         if(self.x <14):
             self.x+=1
@@ -38,8 +39,10 @@ class Drone:
 
         return self.posBoard
     def move(self,grid,tick,grid_aux):
-        if(self.y != -1 and self.x!= -1):
+        if(self.y != -1 and self.x!= -1 and self.x<50):
             grid[self.y][self.x].color=1
+            
+
         if len(self.path_water)>0:
             #for i in self.path_water:
              #   grid[i.x][i.y].color = 1
@@ -86,8 +89,8 @@ class Drone:
             grid[self.y][self.x].occupied = False
             grid[sucessor.x][sucessor.y].occupied = True
         else:
-           
-            grid[self.y][self.x].occupied = False
+            if self.x<50:
+                grid[self.y][self.x].occupied = False
 
         self.manouvers+=sucessor.cost
         self.direction = sucessor.dir_from_drone
@@ -103,16 +106,16 @@ class Drone:
         y = self.x
         sucessors = []
         new_sucessors = []
-        if  valide(x+1,y,grid,grid_aux):
+        if  valide(x+1,y,grid,grid_aux,label = self.label):
             grid[x+1][y].dir_from_drone = (1,0)
             sucessors.append(grid[x+1][y])
-        if valide(x-1,y,grid,grid_aux):
+        if valide(x-1,y,grid,grid_aux,label = self.label):
             grid[x-1][y].dir_from_drone = (0,1)
             sucessors.append(grid[x-1][y])
-        if valide(x,y+1,grid,grid_aux):
+        if valide(x,y+1,grid,grid_aux,label = self.label):
             grid[x][y+1].dir_from_drone = (1,1)
             sucessors.append(grid[x][y+1])
-        if valide(x,y-1,grid,grid_aux):
+        if valide(x,y-1,grid,grid_aux,label = self.label):
             grid[x][y-1].dir_from_drone = (0,0)
             sucessors.append(grid[x][y-1])
         if len(sucessors)==0:
@@ -153,13 +156,14 @@ class patch:
         
 class watershed:
 
-    def __init__(self, checked = [],to_visited = [],chosen_drone = None):
+    def __init__(self, checked = [],to_visited = [],chosen_drone = None, water_threshold = 0,communication_strategy = False):
         self.checked = checked
         self.to_visited = to_visited
         self.done = True
         self.cluster = []
         self.chosen_drone = chosen_drone
-        self.water_threshold = 0
+        self.water_threshold = water_threshold
+        self.communication_strategy =communication_strategy
     def check_empty(self,grid):
         grid_size = 50
         for i in range(grid_size):
@@ -226,16 +230,17 @@ class watershed:
        # self.cluster =  max(self.cluster,key = len)
         #print(len(self.cluster))
         clus = random.choice(self.cluster)
-
-        myDrones = list(filter(lambda x: x.watershed_mode == False,drones))
-        if len(myDrones)== 0 :
-           return grid
+        if self.communication_strategy == False:
+            myDrones = list(filter(lambda x: x.watershed_mode == False,drones))
+            if len(myDrones)== 0 :
+                return grid
+            chosen_drone = min(myDrones,key = lambda drone: euclidian_distance(drone.y,drone.x,clus.x,clus.y))
+        else:
+            chosen_drone = drones
+        
+        grid = self.get_path_to_cluster(drone = chosen_drone,cluster = clus,grid = grid)
         for c in self.cluster:
            grid[c.x][c.y].color = 2
-             
-        chosen_drone = min(myDrones,key = lambda drone: euclidian_distance(drone.y,drone.x,clus.x,clus.y))
-        grid = self.get_path_to_cluster(drone = chosen_drone,cluster = clus,grid = grid)
-       
         self.done = False
     
         return grid
@@ -301,7 +306,7 @@ def decrase_uvalue(grid,feromone_value):
 
 
     return
-def valide(x,y,grid,grid_aux):
+def valide(x,y,grid,grid_aux,label = 0):
     
     if (x <0 or x >49 or y <0 or y> 49):
         return False
@@ -314,6 +319,21 @@ def valide(x,y,grid,grid_aux):
     if len(grid_aux)>0:
         if grid_aux[x][y].occupied:
             return False
+    if label == 1:
+        if (x<24 or y>24):
+            return False
+
+    if label == 2:
+        if (x >=24 or y >24):
+            return False
+
+    if label == 3:
+        if (x >=24 or y <=24):
+            return False
+
+    if label == 4:
+        if (x <24 or y <=24):
+            return False
     #if len(in_cluster)>0:
      #   if grid[x][y] not in in_cluster:
       #      return False
@@ -325,15 +345,15 @@ def sdf(grid):
     sdf = 0
     frequencies = []
     for row in grid:
-        #aux  =list(filter(lambda x: x.color != 3 ,row))   
-        for column in row:
+        aux  =list(filter(lambda x: x.color != 3 ,row))   
+        for column in aux:
             frequencies.append(column.visites)
 
     #f_avg = np.mean(frequencies)
     f_avg = statistics.mean(frequencies)
     for freq in frequencies:
         sdf += (freq - f_avg)**2
-
+    print(len(frequencies))
     sdf = math.sqrt(sdf / len(frequencies))
     #print("SDF") 
     #print(sdf)
@@ -348,8 +368,8 @@ def qmi(grid,tick):
 
     total_cells= 0
     for row in grid:
-        #aux  =list(filter(lambda x: x.color != 3 ,row))     
-        for column in row:
+        aux  =list(filter(lambda x: x.color != 3 ,row))     
+        for column in aux:
             interval = 0
             total_intervals+= len(column.intervals)
             for i in column.intervals:
@@ -357,7 +377,8 @@ def qmi(grid,tick):
             total_cells+=interval
                 
             #interval += (reduce((lambda x,y: y-x),column.intervals))**2
-                   
+    #print(total_cells)
+    #print(total_intervals)
     qmi = math.sqrt(total_cells/total_intervals)
     #print(qmi)
     return qmi
@@ -369,8 +390,8 @@ def ncc (grid):
     minimo = 0
     for row in grid:
         aux = []
-        #aux  =list(filter(lambda x: x.color != 3 ,row))            
-        minimo = min(row, key = lambda x : x.visites ).visites
+        aux  =list(filter(lambda x: x.color != 3 ,row))            
+        minimo = min(aux, key = lambda x : x.visites ).visites
         min_ncc.append(minimo)
    # print(min(min_ncc))
     ncc = min(min_ncc)

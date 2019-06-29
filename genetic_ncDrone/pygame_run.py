@@ -34,7 +34,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
 
     tick = 0
     beginNC = False
-    communication_time = 50
+    communication_time = 1
     water.water_threshold = 2
 
 
@@ -74,11 +74,11 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                             grid,grids = update_grid(grid,grids)
                     else:
                        for k,drone in enumerate(drones):
-                            print(k)
+                            #print(k)
                             if tick_to_go(tick,k):
                                 grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
-                          
-                            grid = water.check(grid = grid,grid_aux = [],drones = drones)
+                                #print(drones[].x,' ',drones[1].y )
+                           # grid = water.check(grid = grid,grid_aux = [],drones = drones)
                     tick+=1     
 
 
@@ -106,9 +106,9 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                     if tick_to_go(tick,k):
                         grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
                 
-                #if tick%50 == 0:
-                 #   grid = decrase_uvalue(grid = grid,feromone_value = 0.3)
-                grid = water.check(grid = grid,grid_aux = [],drones = drones)
+                #if tick%1 == 0:
+                  # grid = decrase_uvalue(grid = grid,feromone_value = 0.3)
+                #grid = water.check(grid = grid,grid_aux = [],drones = drones)
               #  if water.done == False:
                #     run =False
                 
@@ -123,7 +123,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
         for row in range(grid_size):
             for column in range(grid_size):
                 color = WHITE
-                text = font.render(str(grid[row][column].u_value), True, BLACK)
+                text = font.render(str(grid[row][column].visites), True, BLACK)
                 if grid[row][column].color == 1:
                     color = GREEN
                 if grid[row][column].color == 2:
