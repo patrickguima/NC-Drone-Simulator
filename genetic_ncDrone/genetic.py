@@ -19,9 +19,9 @@ from gaft.analysis.fitness_store import FitnessStore
 from gaft.analysis.console_output import ConsoleOutput
 import time
 # Define population.
-indv_template = BinaryIndividual(ranges=[(1,1000)], eps=1)
+indv_template = BinaryIndividual(ranges=[(1,1000),(0,1)], eps=0.01)
 #indv_template = DecimalIndividual(ranges=[(1, 1000),(0.0,0.5)], eps=0.001)
-population = Population(indv_template=indv_template, size=70).init()
+population = Population(indv_template=indv_template, size=80).init()
 
 # Create genetic operators.
 selection = RouletteWheelSelection()
@@ -49,19 +49,20 @@ def fitness(indv):
     #ESTRATEGIAS ADOTADAS
     time_strategy = False
     communication_strategy = False
-    evaporation_strategy = False
-    watershed_strategy =   True
-
+    evaporation_strategy =True
+    watershed_strategy =   False
+    quandrant_strategy =True
+    type_A = True
     
 
     #PARAMETROS DE SIMULAÇAO
     #print(indv.solution)   
-    evap_time = 0 
-    evap_factor = 0
-    threshold_time = 0
-    watershed_time =  1
+    evap_time = int(indv.solution[0])
+    evap_factor = indv.solution[1]
+    threshold_time =  0
+    watershed_time =  0
     communication_time = 0 
-    water_threshold =  int(indv.solution[0])
+    water_threshold =  0
 
     number_drones = 4
      #INICIALIZAÇAO
@@ -84,15 +85,40 @@ def fitness(indv):
     grid = []
     grids = []
     grid = copy.deepcopy(initial_grid)
+    make_obstacles3(grid)
     if communication_strategy == True:  
         for j in range(4):
             grids.append(copy.deepcopy(initial_grid))
             
     drones  = []  
-    for num in range(number_drones):        
-        drone  = Drone(x = -1,y = 49,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+    if quandrant_strategy:
+        if type_A:
+            drone  = Drone(x = -1,y = 49,label = 1,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drone1  = Drone(x = -1,y = 49,label = 2,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drone2  = Drone(x = -1,y = 49,label = 3,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drone3  = Drone(x = -1,y = 49,label = 4,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            grid = get_path_to_cluster(drone1,grid[20][0],grid)
+            grid = get_path_to_cluster(drone2,grid[24][49],grid)
+            grid = get_path_to_cluster(drone3,grid[24][49],grid)
+                #water.get_path_to_cluster(drone1,grid[random.randint(0,23)][random.randint(0,23)],grid)
+                #water.get_path_to_cluster(drone2,grid[random.randint(0,23)][random.randint(25,49)],grid)
+                #water.get_path_to_cluster(drone3,grid[random.randint(25,49)][random.randint(25,49)],grid)
+        else:
+            drone  = Drone(x = -1,y = 49,label = 1,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drone1  = Drone(x = -1,y = 0,label = 2,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drone2  = Drone(x = 50,y = 0,label = 3,manouvers = 0, direction =(0,0),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drone3  = Drone(x = 50,y = 49,label = 4,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            
+            
         drones.append(drone)
-        
+        drones.append(drone1)
+        drones.append(drone2)
+        drones.append(drone3)
+    else:
+        for num in range(number_drones):
+            drone  = Drone(x = -1,y = 49,label = None,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
+            drones.append(drone)
+
     
     for tick in range(ticks):
         if communication_strategy == True:
@@ -141,7 +167,7 @@ def fitness(indv):
 
 if '__main__' == __name__:
     inicio = time.time()
-    engine.run(ng=100)
+    engine.run(ng=200)
     best_indv = engine.population.best_indv(engine.fitness)
     print('best individual = ',best_indv.solution)
     fim = time.time()

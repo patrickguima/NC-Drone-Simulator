@@ -66,6 +66,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                 elif event.key == pygame.K_SPACE  and beginNC == True:
                     beginNC = False
                 elif event.key == pygame.K_RIGHT:
+                    run = False
                     if communication_strategy == True:
                         for k,drone in enumerate(drones):
                             if tick_to_go(tick,k):
@@ -78,7 +79,8 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                             if tick_to_go(tick,k):
                                 grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
                                 #print(drones[].x,' ',drones[1].y )
-                           # grid = water.check(grid = grid,grid_aux = [],drones = drones)
+                            if tick%1 == 0:
+                                grid = decrase_uvalue(grid = grid,feromone_value = 0.83)
                     tick+=1     
 
 
@@ -88,7 +90,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
         if(beginNC ):
             done = True
 
-       
+        
         if(run):
             if communication_strategy == True:
                 
@@ -106,8 +108,8 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                     if tick_to_go(tick,k):
                         grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
                 
-                #if tick%1 == 0:
-                  # grid = decrase_uvalue(grid = grid,feromone_value = 0.3)
+               # if tick%1 == 0:
+                #  grid = decrase_uvalue(grid = grid,feromone_value = 0.32)
                 #grid = water.check(grid = grid,grid_aux = [],drones = drones)
               #  if water.done == False:
                #     run =False
@@ -116,8 +118,8 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
 
         font = pygame.font.Font(None, 20)
     #text = font.render("1", True, BLACK)
-        
-    
+        #size_obstacles(grid)
+       
         screen.fill(BLACK)
         # Draw the grid
         for row in range(grid_size):
@@ -137,7 +139,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                               WIDTH,
                               HEIGHT])
                 screen.blit(text,((10+(19* grid[row][column].y )) - text.get_width()//2 ,(12 + (19 * grid[row][column].x )) -text.get_height()//2))
- 
+                
     # Limit to 60 frames per second
        # DRONE = drone[0]
         #x = drones[0]

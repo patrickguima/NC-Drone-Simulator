@@ -26,28 +26,27 @@ def valide_start_point(grid):
 def go():
   
 
-    #NUMERO DE TICKS
+    #NUMERO DE ticks
     ticks =10000
     #ESTRATEGIAS ADOTADAS
     simulation_on_screen = False
-
-    time_strategy = False
+    time_strategy =False
     communication_strategy = False
-    evaporation_strategy = True
+    evaporation_strategy =True
     watershed_strategy = False
     quandrant_strategy = True
     type_A = True
     #PARAMETROS DE SIMULAÇAO
     evap_time = 1
-    evap_factor = 0.328125
-    threshold_time = 4
+    evap_factor =  0.70
+    threshold_time = 0
     watershed_time = 0
     communication_time = 0
     water_threshold = 0
 
     number_drones = 4
     #INICIALIZAÇAO
-    water = watershed(water_threshold = water_threshold,communication_strategy = communication_strategy)
+    #water = watershed(water_threshold = water_threshold,communication_strategy = communication_strategy)
     #water.water_threshold = 0
    # water.communication_strategy = communication_strategy
     metrics_results = []
@@ -70,6 +69,9 @@ def go():
         grid = []
         grids = []
         grid = copy.deepcopy(initial_grid)
+        #make_obstacles1(grid)
+        #make_obstacles2(grid)
+        #make_obstacles3(grid)
         if communication_strategy == True:    
             for j in range(number_drones):
                 grids.append(copy.deepcopy(initial_grid))
@@ -81,12 +83,12 @@ def go():
                 drone1  = Drone(x = -1,y = 49,label = 2,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
                 drone2  = Drone(x = -1,y = 49,label = 3,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
                 drone3  = Drone(x = -1,y = 49,label = 4,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
-                water.get_path_to_cluster(drone1,grid[20][0],grid)
-                water.get_path_to_cluster(drone2,grid[24][49],grid)
-                water.get_path_to_cluster(drone3,grid[24][49],grid)
-                #water.get_path_to_cluster(drone1,grid[random.randint(0,23)][random.randint(0,23)],grid)
-                #water.get_path_to_cluster(drone2,grid[random.randint(0,23)][random.randint(25,49)],grid)
-                #water.get_path_to_cluster(drone3,grid[random.randint(25,49)][random.randint(25,49)],grid)
+                grid = get_path_to_cluster(drone1,grid[20][0],grid)
+                grid  = get_path_to_cluster(drone2,grid[24][49],grid)
+                grid = get_path_to_cluster(drone3,grid[24][49],grid)
+                #get_path_to_cluster(drone1,grid[random.randint(0,23)][random.randint(0,23)],grid)
+                #get_path_to_cluster(drone2,grid[random.randint(0,23)][random.randint(25,49)],grid)
+                #get_path_to_cluster(drone3,grid[random.randint(25,49)][random.randint(25,49)],grid)
             else:
                 drone  = Drone(x = -1,y = 49,label = 1,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
                 drone1  = Drone(x = -1,y = 0,label = 2,manouvers = 0, direction =(1,1),time_base =time_strategy ,time_threshold = threshold_time,communication_strategy = communication_strategy)
@@ -106,7 +108,8 @@ def go():
         
 
         if simulation_on_screen:
-            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run  = True,communication_strategy = communication_strategy)
+            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run  =True   ,communication_strategy = communication_strategy)
+
         else:    
             for tick in range(ticks):
                # print(tick)
@@ -134,6 +137,7 @@ def go():
                         else:
                             grid = water.check(grid = grid,grid_aux = [],drones = drones)
 
+        size_obstacles(grid)
         soma_manobras = 0      
         for drone in drones:
             soma_manobras += drone.manouvers
