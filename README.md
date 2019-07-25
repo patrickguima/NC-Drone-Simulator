@@ -11,6 +11,4 @@ The test platform was built using the PyGame library. The scenario is a 50×50gr
 
 
 ## No Fly Zone Scenarios
-<img src="Images/scenario-1.png" width="200" height="200">
-<img src="Images/scenario-2.png" width="200" height="200">
-<img src="Images/scenario-3.png" width="200" height="200">
+<img src="Images/scenario-1.png" width="200" height="200"> <img src="Images/scenario-2.png" width="200" height="200"> <img src="Images/scenario-3.png" width="200" height="200">
