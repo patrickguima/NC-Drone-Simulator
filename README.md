@@ -15,7 +15,7 @@ We use Genetic Algorithm (GA) optimization to define the values of the set of pa
 ```sh
 pip install gaft
 ```
-<img src="Images/genetic.png" width="500" height="500">
+<img src="Images/genetic.png" width="200" height="200">
 
 ## Simulation Scenario
 <img src="Images/scenario.png" width="500" height="500">
