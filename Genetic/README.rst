@@ -12,9 +12,6 @@ A **G**\ enetic **A**\ lgorithm **F**\ ramework in py\ **T**\ hon
     :target: https://codecov.io/gh/PytLab/gaft
     :alt: Codecov
 
-.. image:: https://landscape.io/github/PytLab/gaft/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/PytLab/gaft/master
-    :alt: Code Health
 
 .. image:: https://img.shields.io/badge/python-3.5-green.svg
     :target: https://www.python.org/downloads/release/python-351/
