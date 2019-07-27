@@ -169,35 +169,6 @@ Global maximum search for binary function
 
 See `example 02 <https://github.com/PytLab/gaft/blob/master/examples/ex02/ex02.py>`_ for a two-dimension search for the global maximum of function `f(x, y) = y*sin(2*pi*x) + x*cos(2*pi*y)`
 
-Plugins
--------
-
-You can define your own genetic operators for GAFT and run your algorithm test.
-
-The plugin interfaces are defined in `/gaft/plugin_interfaces/ <https://github.com/PytLab/gaft/tree/master/gaft/plugin_interfaces>`_, you can extend the interface class and define your own analysis class or genetic operator class. The `built-in operators <https://github.com/PytLab/gaft/tree/master/gaft/operators>`_ and `built-in on-the-fly analysis <https://github.com/PytLab/gaft/tree/master/gaft/analysis>`_ can be treated as an official example for plugins development.
-
-Blogs(Chinese Simplified)
--------------------------
-- `GAFT-一个使用Python实现的遗传算法框架 <http://pytlab.github.io/2017/07/23/gaft-%E4%B8%80%E4%B8%AA%E5%9F%BA%E4%BA%8EPython%E7%9A%84%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E6%A1%86%E6%9E%B6/>`_
-
-- `使用MPI并行化遗传算法框架GAFT <http://pytlab.github.io/2017/08/02/%E4%BD%BF%E7%94%A8MPI%E5%B9%B6%E8%A1%8C%E5%8C%96%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95/>`_
-
-- `遗传算法中几种不同选择算子的比较 <http://pytlab.github.io/2017/09/19/%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E4%B8%AD%E5%87%A0%E7%A7%8D%E4%B8%8D%E5%90%8C%E9%80%89%E6%8B%A9%E7%AE%97%E5%AD%90%E7%9A%84%E6%AF%94%E8%BE%83/>`_
-
-- `遗传算法中适值函数的标定与大变异算法 <http://pytlab.github.io/2017/09/23/%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E4%B8%AD%E9%80%82%E5%80%BC%E5%87%BD%E6%95%B0%E7%9A%84%E6%A0%87%E5%AE%9A%E4%B8%8E%E5%A4%A7%E5%8F%98%E5%BC%82%E7%AE%97%E6%B3%95/>`_
-
-- `遗传算法框架GAFT优化小记 <http://pytlab.github.io/2017/10/08/%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E6%A1%86%E6%9E%B6GAFT%E4%BC%98%E5%8C%96%E5%B0%8F%E8%AE%B0/>`_
-
-- `机器学习算法实践-Platt SMO和遗传算法优化SVM <http://pytlab.github.io/2017/10/15/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95%E5%AE%9E%E8%B7%B5-Platt-SMO%E5%92%8C%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E4%BC%98%E5%8C%96SVM/>`_
-
-- `遗传算法框架GAFT已支持自定义个体编码方式 <http://pytlab.github.io/2018/03/07/%E9%81%97%E4%BC%A0%E7%AE%97%E6%B3%95%E6%A1%86%E6%9E%B6GAFT%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E4%B8%AA%E4%BD%93%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/>`_
-
-TODO
-----
-1. ✅ Parallelization 
-2. ✅ Add more built-in genetic operators with different algorithms
-3. 🏃 Add C++ backend(See `GASol <https://github.com/PytLab/GASol>`_)
-
 Obtain a copy
 -------------
 
