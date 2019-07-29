@@ -1,7 +1,7 @@
 import pygame
 from ncDrone import *
 import copy
-def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
+def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap_strategy, et,ef):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     GREEN = (0, 255, 0)
@@ -79,8 +79,9 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
                             if tick_to_go(tick,k):
                                 grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
                                 #print(drones[].x,' ',drones[1].y )
-                            if tick%1 == 0:
-                                grid = decrase_uvalue(grid = grid,feromone_value = 0.83)
+                            if evap_strategy:
+                                if  tick%et ==0:
+                                    grid = decrase_uvalue(grid = grid,feromone_value = ef)
                     tick+=1     
 
 
@@ -104,15 +105,13 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy):
 
             else:
                 for k,drone in enumerate(drones):
-
                     if tick_to_go(tick,k):
                         grid,_ = drone.move(grid = grid,tick = tick,grid_aux = [])
-                
-               # if tick%1 == 0:
-                #  grid = decrase_uvalue(grid = grid,feromone_value = 0.32)
-                #grid = water.check(grid = grid,grid_aux = [],drones = drones)
-              #  if water.done == False:
-               #     run =False
+                if evap_strategy:
+                    #print('here')
+                    if  tick%et ==0:
+                        grid = decrase_uvalue(grid = grid,feromone_value = ef)
+              
                 
             tick+=1
 

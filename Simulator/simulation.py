@@ -26,29 +26,39 @@ def valide_start_point(grid):
 def go():
   
 
-    #NUMERO DE ticks
+    #NUMERO DE TICKS
     ticks =10000
     #ESTRATEGIAS ADOTADAS
     simulation_on_screen = True
     time_strategy =False
-    communication_strategy = False
-    evaporation_strategy =False
-    watershed_strategy = False
+    evaporation_strategy = False
     quandrant_strategy = False
-    type_A = True
+
     #PARAMETROS DE SIMULAÇAO
     evap_time = 1
-    evap_factor =  0.70
+    evap_factor =  0.83
     threshold_time = 0
+    num_simulations = 30
+    #NUMERO DE VANTs
+    number_drones = 4
+
+    #TRUE PARA RODAR E FALSE PARA RODAR PASSO A PASSO 
+    run = True
+
+
+    #OUTRAS ESTRATEGIAS QUE FORAM DESCARTADAS
+    communication_strategy = False
+    watershed_strategy = False
+    type_A = True
     watershed_time = 0
     communication_time = 0
-    water_threshold = 0
+    water_threshold =0
 
-    number_drones = 4
+   
     #INICIALIZAÇAO
     #water = watershed(water_threshold = water_threshold,communication_strategy = communication_strategy)
     #water.water_threshold = 0
-   # water.communication_strategy = communication_strategy
+    #water.communication_strategy = communication_strategy
     metrics_results = []
     grid_size = 50
     initial_grid = []
@@ -59,16 +69,15 @@ def go():
             aux_patch = patch(u_value = 0,x = row,y = column,color = 0,intervals = [],visites = 0,visita_anterior = 0)
             initial_grid[row].append(aux_patch)
 
-  #  for i in range(10):
-       # for j in range(10):          
-        #    initial_grid[10+i][20+j].color=3
-    
 
-
-    for i in range(30):
+    for i in range(num_simulations):
         grid = []
         grids = []
         grid = copy.deepcopy(initial_grid)
+
+
+        #ADCIONAR OBSTACULOS (BASTA DESCOMENTAR)
+
         #make_obstacles1(grid)
         #make_obstacles2(grid)
         #make_obstacles3(grid)
@@ -105,7 +114,7 @@ def go():
         
 
         if simulation_on_screen:
-            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run  =True   ,communication_strategy = communication_strategy)
+            select_initial_state(drones = drones, grid = grid,grids = grids,ticks = ticks, run  =run   ,communication_strategy = communication_strategy, evap_strategy = evaporation_strategy, et = evap_time, ef = evap_factor)
 
         else:    
             for tick in range(ticks):
@@ -134,7 +143,7 @@ def go():
                         else:
                             grid = water.check(grid = grid,grid_aux = [],drones = drones)
 
-        size_obstacles(grid)
+        #size_obstacles(grid)
         soma_manobras = 0      
         for drone in drones:
             soma_manobras += drone.manouvers
@@ -155,10 +164,7 @@ def go():
     return
 
 
-#numero de agentes, tempo entre evaporaçoes, posiçao inicial e taxa de evaporaçao
-#começar tempo entre evaporaçao e taxa de evaporação. testar tempos no time base strategy na escolha de empate  
 
-#cromossomo []
 
 
 

@@ -67,4 +67,10 @@ Quick start
     run = True #True to run and False to run step by step using the right arrow
 
 
-
+5. Running or step by step
+``````````````````````````````````````````````````````
+.. code-block:: python
+    #Just uncoment the lines below to add the obstacles
+    #make_obstacles1(grid)
+    #make_obstacles2(grid)
+    #make_obstacles3(grid)
