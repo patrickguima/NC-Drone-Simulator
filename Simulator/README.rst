@@ -30,9 +30,9 @@ Quick start
 
 .. code-block:: python
 
-    ticks =10000
+    ticks = 10000
 
-2. Running on or off screen
+2. Running ON or OFF screen
 ````````````````````
 .. code-block:: python
     simulation_on_screen = True
@@ -43,8 +43,8 @@ Quick start
 
 .. code-block:: python
     
-    time_strategy =False
-    evaporation_strategy = False
+    time_strategy = False
+    evaporation_strategy = True
     quandrant_strategy = False
 
 
@@ -62,8 +62,8 @@ Quick start
 ``````````````````````````````````````````````````````
 
 .. code-block:: python
-    #True to run and False to run step by step using the right arrow
+    
+    run = True #True to run and False to run step by step using the right arrow
 
-    run = True
 
 
