@@ -33,6 +33,7 @@ Quick start
     ticks =10000
 
 2. Running on or off screen
+````````````````````'
 .. code-block:: python
     simulation_on_screen = True
 
