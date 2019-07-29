@@ -1,5 +1,5 @@
 ====
-UVA SIMULATOR
+UAV SIMULATOR
 ====
 
 
@@ -33,7 +33,7 @@ Quick start
     ticks =10000
 
 2. Running on or off screen
-````````````````````'
+````````````````````
 .. code-block:: python
     simulation_on_screen = True
 
@@ -64,6 +64,6 @@ Quick start
 .. code-block:: python
     #True to run and False to run step by step using the right arrow
 
-     run = True
+    run = True
 
 
