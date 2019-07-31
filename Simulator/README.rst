@@ -67,7 +67,7 @@ Quick start
     run = True #True to run and False to run step by step using the right arrow
 
 
-6. Running or step by step
+6. No fly zones scenarios
 ``````````````````````````````````````````````````````
 .. code-block:: python
 
