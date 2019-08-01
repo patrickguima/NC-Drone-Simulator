@@ -22,4 +22,4 @@ pip install gaft
 
 
 ## No Fly Zone Scenarios
-<img src="Images/scenario-1.png" width="200" height="200"> <img src="Images/scenario-2.png" width="200" height="200"> <img src="Images/scenario-3.png" width="200" height="200">
+<img src="Images/scenario-1.png" width="250" height="250"> <img src="Images/scenario-2.png" width="250" height="250"> <img src="Images/scenario-3.png" width="250" height="250">
