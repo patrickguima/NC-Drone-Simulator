@@ -39,7 +39,7 @@ Quick start
     simulation_on_screen = True
 
 
-3. Selecting strategys
+3. Selecting strategies
 ````````````````````
 
 .. code-block:: python
