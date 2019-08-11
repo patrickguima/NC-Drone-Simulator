@@ -4,7 +4,7 @@ import copy
 def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap_strategy, et,ef):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
-    GREEN = (0, 255, 0)
+    GREEN = (150, 255, 150)
     RED = (255, 0, 0)
     BLUE = (0, 0, 255)
 
@@ -12,12 +12,12 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap
     HEIGHT = 14
  
     grid_size = 50
-    MARGIN = 5
+    MARGIN = 1
     
  
     pygame.init()
  
-    WINDOW_SIZE = [1100, 1100]
+    WINDOW_SIZE = [752, 751]
     screen = pygame.display.set_mode(WINDOW_SIZE)
 
     # Set title of screen
@@ -115,7 +115,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap
                 
             tick+=1
 
-        font = pygame.font.Font(None, 20)
+        font = pygame.font.Font(None, 10)
     #text = font.render("1", True, BLACK)
         #size_obstacles(grid)
        
@@ -137,7 +137,7 @@ def select_initial_state(drones,grid,grids,ticks,run,communication_strategy,evap
                               (MARGIN + HEIGHT) * row + MARGIN,
                               WIDTH,
                               HEIGHT])
-                screen.blit(text,((10+(19* grid[row][column].y )) - text.get_width()//2 ,(12 + (19 * grid[row][column].x )) -text.get_height()//2))
+                screen.blit(text,((8+(15* grid[row][column].y )) - text.get_width()//2 ,(10 + (15 * grid[row][column].x )) -text.get_height()//2))
                 
     # Limit to 60 frames per second
        # DRONE = drone[0]

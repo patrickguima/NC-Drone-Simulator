@@ -31,8 +31,8 @@ def go():
     #ESTRATEGIAS ADOTADAS
     simulation_on_screen = True
     time_strategy =False
-    evaporation_strategy = False
-    quandrant_strategy = False
+    evaporation_strategy = True
+    quandrant_strategy = True
 
     #PARAMETROS DE SIMULAÇAO
     evap_time = 1
@@ -56,9 +56,6 @@ def go():
 
    
     #INICIALIZAÇAO
-    #water = watershed(water_threshold = water_threshold,communication_strategy = communication_strategy)
-    #water.water_threshold = 0
-    #water.communication_strategy = communication_strategy
     metrics_results = []
     grid_size = 50
     initial_grid = []

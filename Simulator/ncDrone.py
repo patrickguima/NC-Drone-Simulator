@@ -10,7 +10,7 @@ class Drone:
     def __init__(self,x = 0 , y=0,manouvers = 0,direction = (0,0),time_base = False, time_threshold = 0,communication_strategy = False,label = None):
         self.x = x
         self.y = y
-        self.posBoard = ((x*19) +5,(y*19) +5)
+        self.posBoard = ((x*15) +1,(y*15) +1)
         self.direction = direction
         self.manouvers = manouvers
         self.time_base = time_base
@@ -19,22 +19,7 @@ class Drone:
         self.path_water = []
         self.watershed_mode = False
         self.label = label
-    def moveRight(self):
-        if(self.x <14):
-            self.x+=1
-            self.posBoard = [(self.x*37) +5,(self.y*37) +5] 
-    def moveLeft(self):
-        if(self.x >0):
-            self.x-=1
-            self.posBoard = [(self.x*37) +5,(self.y*37) +5] 
-    def moveUp(self):
-        if(self.y >0):
-            self.y-=1
-            self.posBoard = [(self.x*37) +5,(self.y*37) +5] 
-    def moveDown(self):
-        if(self.y <14):
-            self.y+=1
-            self.posBoard = [(self.x*37) +5,(self.y*37) +5]
+    
     def getBoardPos(self):
 
         return self.posBoard
@@ -58,9 +43,8 @@ class Drone:
                 if y+1 == path.y:
                     path.dir_from_drone = (1,1)
                 if y-1 == path.y:
-                    path.dir_from_drone = (1,0)
+                    path.dir_from_drone = (0,0)
                 path.cost = abs((self.direction[0]-path.dir_from_drone[0]) + (self.direction[1]-path.dir_from_drone[1]))
-               # print('cost',path.cost)
                 sucessors = [path]
             else:
                 sucessors = []
@@ -98,8 +82,8 @@ class Drone:
         self.y = sucessor.x
         grid[self.y][self.x].intervals.append(tick -grid[self.y][self.x].visita_anterior)
         grid[self.y][self.x].visita_anterior = tick
-        self.posBoard = [(self.x*19) +5,(self.y*19) +5] 
-        #decrase_uvalue(grid,self.feromone_value)
+        self.posBoard = [(self.x*15) +1,(self.y*15) +1] 
+        
         return grid,grid_aux
     def getSucessor(self,grid,grid_aux):
         x = self.y
@@ -222,13 +206,12 @@ class watershed:
         self.checked.clear()
 
         
-       # self.cluster = list(filter(lambda x: len(x)<=50,all_clusters))
+     
         self.cluster =  max(all_clusters,key = len)
         if len(self.cluster)==0:
-           # self.cluster =  max(self.cluster,key = len)
+         
             return grid        
-       # self.cluster =  max(self.cluster,key = len)
-        #print(len(self.cluster))
+      
         clus = random.choice(self.cluster)
         if self.communication_strategy == False:
             myDrones = list(filter(lambda x: x.watershed_mode == False,drones))
@@ -337,6 +320,8 @@ def valide(x,y,grid,grid_aux,label = 0):
     if len(grid_aux)>0:
         if grid_aux[x][y].occupied:
             return False
+
+
     if label == 1:
         if (x<24 or y>24):
             return False

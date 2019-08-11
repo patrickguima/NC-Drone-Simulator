@@ -65,7 +65,7 @@ def fitness(indv):
 
     number_drones = 4
      #INICIALIZAÇAO
-    water = watershed(water_threshold = water_threshold,communication_strategy = communication_strategy)
+    #water = watershed(water_threshold = water_threshold,communication_strategy = communication_strategy)
     grid_size = 50
     initial_grid = []
 
