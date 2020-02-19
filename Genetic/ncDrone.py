@@ -59,7 +59,7 @@ class Drone:
                     path.dir_from_drone = (1,1)
                 if y-1 == path.y:
                     path.dir_from_drone = (1,0)
-                path.cost = abs((self.direction[0]-path.dir_from_drone[0]) + (self.direction[1]-path.dir_from_drone[1]))
+               path.cost = abs((self.direction[0]-path.dir_from_drone[0]) + abs(self.direction[1]-path.dir_from_drone[1])
                # print('cost',path.cost)
                 sucessors = [path]
             else:
